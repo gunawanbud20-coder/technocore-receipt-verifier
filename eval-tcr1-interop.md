@@ -8,7 +8,7 @@
 - [x] Existing output paths are never overwritten.
 - [x] Existing receipt-verifier tests remain green.
 - [x] Negative test: removing the implementation makes the new test fail.
-- [ ] Commit is pushed from `gunawanbud20-coder` and CI succeeds.
+- [x] Commit is pushed from `gunawanbud20-coder` and CI succeeds.
 
 ## Fail criteria
 
