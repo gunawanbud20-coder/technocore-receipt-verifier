@@ -1,0 +1,29 @@
+{
+  "command": "python3 -m unittest -v",
+  "exit_code": 0,
+  "stdout_stderr_tail": [
+    "test_exact_match_returns_sequence (test_receipt_verifier.ReceiptTests.test_exact_match_returns_sequence) ... ok",
+    "test_rejects_ambiguous_duplicate_did_nonce_receipts (test_receipt_verifier.ReceiptTests.test_rejects_ambiguous_duplicate_did_nonce_receipts) ... ok",
+    "test_rejects_boolean_nonce_that_python_might_treat_as_one (test_receipt_verifier.ReceiptTests.test_rejects_boolean_nonce_that_python_might_treat_as_one) ... ok",
+    "test_rejects_malformed_payload (test_receipt_verifier.ReceiptTests.test_rejects_malformed_payload) ... ok",
+    "test_rejects_missing_receipt (test_receipt_verifier.ReceiptTests.test_rejects_missing_receipt) ... ok",
+    "test_rejects_non_positive_or_boolean_sequences (test_receipt_verifier.ReceiptTests.test_rejects_non_positive_or_boolean_sequences) ... ok",
+    "test_rejects_string_nonce_that_official_signed_lane_never_stores (test_receipt_verifier.ReceiptTests.test_rejects_string_nonce_that_official_signed_lane_never_stores) ... ok",
+    "test_descriptor_matches_deterministic_transport_artifact (test_tcr1_interop.TCR1InteropTests.test_descriptor_matches_deterministic_transport_artifact) ... ok",
+    "test_write_is_exclusive_and_preserves_exact_hashed_bytes (test_tcr1_interop.TCR1InteropTests.test_write_is_exclusive_and_preserves_exact_hashed_bytes) ... ok",
+    "",
+    "----------------------------------------------------------------------",
+    "Ran 9 tests in 0.115s",
+    "",
+    "OK"
+  ],
+  "elapsed_seconds": 0.293,
+  "eval_pass": true,
+  "phase": "FINAL_REFACTOR_PASS",
+  "criteria": {
+    "reproducibility": true,
+    "strict_schema": true,
+    "tcr1_regression": true,
+    "negative_test": "see run-2.json"
+  }
+}

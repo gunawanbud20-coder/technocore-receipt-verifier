@@ -19,9 +19,23 @@ def find_receipt(payload, did, nonce, text):
     if not isinstance(messages, list):
         raise ValueError("room payload must contain a messages list")
     clean = sweep(text)
-    matches = [m for m in messages if isinstance(m, dict)
-               and m.get("from") == did and str(m.get("nonce")) == str(nonce)
-               and m.get("text") == clean and isinstance(m.get("seq"), int)]
+    nonce_text = str(nonce)
+    if not nonce_text.isascii() or not nonce_text.isdigit() or not 1 <= len(nonce_text) <= 19:
+        raise ValueError("nonce must be 1-19 ASCII digits")
+    expected_nonce = int(nonce_text)
+    same_nonce = [m for m in messages if isinstance(m, dict)
+                  and m.get("from") == did
+                  and (str(m.get("nonce")) == str(expected_nonce)
+                       or m.get("nonce") == expected_nonce)]
+    for message in same_nonce:
+        if type(message.get("nonce")) is not int:
+            raise ValueError("receipt nonce must be an integer")
+        if type(message.get("seq")) is not int or message["seq"] <= 0:
+            raise ValueError("receipt sequence must be a positive integer")
+    if len(same_nonce) > 1:
+        raise ValueError("room payload contains duplicate DID and nonce records")
+    matches = [m for m in same_nonce if m.get("text") == clean
+               and isinstance(m.get("seq"), int)]
     if not matches:
         raise LookupError("receipt not found for exact DID, nonce, and swept text")
     match = max(matches, key=lambda m: m["seq"])

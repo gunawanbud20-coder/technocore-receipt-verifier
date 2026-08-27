@@ -13,7 +13,7 @@ class TCR1InteropTests(unittest.TestCase):
             "messages": [
                 {
                     "from": "did:key:zA",
-                    "nonce": "7",
+                    "nonce": 7,
                     "text": "shipped verifier",
                     "seq": 42,
                 }

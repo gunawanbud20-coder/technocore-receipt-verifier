@@ -1,0 +1,24 @@
+{
+  "command": "python3 -m unittest -v test_receipt_verifier.ReceiptTests.test_rejects_ambiguous_duplicate_did_nonce_receipts",
+  "exit_code": 1,
+  "stdout_stderr_tail": [
+    "test_rejects_ambiguous_duplicate_did_nonce_receipts (test_receipt_verifier.ReceiptTests.test_rejects_ambiguous_duplicate_did_nonce_receipts) ... FAIL",
+    "",
+    "======================================================================",
+    "FAIL: test_rejects_ambiguous_duplicate_did_nonce_receipts (test_receipt_verifier.ReceiptTests.test_rejects_ambiguous_duplicate_did_nonce_receipts)",
+    "----------------------------------------------------------------------",
+    "Traceback (most recent call last):",
+    "  File \"/mnt/d/hermes-ops/tg2/work/technocore-receipt-verifier/test_receipt_verifier.py\", line 27, in test_rejects_ambiguous_duplicate_did_nonce_receipts",
+    "    with self.assertRaisesRegex(ValueError, \"duplicate DID and nonce\"):",
+    "AssertionError: ValueError not raised",
+    "",
+    "----------------------------------------------------------------------",
+    "Ran 1 test in 0.027s",
+    "",
+    "FAILED (failures=1)"
+  ],
+  "elapsed_seconds": 0.417,
+  "eval_pass": false,
+  "phase": "RED",
+  "expected_failure_observed": true
+}

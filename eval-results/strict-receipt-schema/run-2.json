@@ -1,0 +1,43 @@
+{
+  "command": "python3 -m unittest -v",
+  "exit_code": 1,
+  "stdout_stderr_tail": [
+    "AssertionError: ValueError not raised",
+    "",
+    "======================================================================",
+    "FAIL: test_rejects_non_positive_or_boolean_sequences (test_receipt_verifier.ReceiptTests.test_rejects_non_positive_or_boolean_sequences) (sequence=0)",
+    "----------------------------------------------------------------------",
+    "Traceback (most recent call last):",
+    "  File \"/mnt/d/hermes-ops/tg2/work/technocore-receipt-verifier/test_receipt_verifier.py\", line 51, in test_rejects_non_positive_or_boolean_sequences",
+    "    with self.assertRaisesRegex(ValueError, \"sequence must be a positive integer\"):",
+    "AssertionError: ValueError not raised",
+    "",
+    "======================================================================",
+    "FAIL: test_rejects_non_positive_or_boolean_sequences (test_receipt_verifier.ReceiptTests.test_rejects_non_positive_or_boolean_sequences) (sequence=-1)",
+    "----------------------------------------------------------------------",
+    "Traceback (most recent call last):",
+    "  File \"/mnt/d/hermes-ops/tg2/work/technocore-receipt-verifier/test_receipt_verifier.py\", line 51, in test_rejects_non_positive_or_boolean_sequences",
+    "    with self.assertRaisesRegex(ValueError, \"sequence must be a positive integer\"):",
+    "AssertionError: ValueError not raised",
+    "",
+    "======================================================================",
+    "FAIL: test_rejects_string_nonce_that_official_signed_lane_never_stores (test_receipt_verifier.ReceiptTests.test_rejects_string_nonce_that_official_signed_lane_never_stores)",
+    "----------------------------------------------------------------------",
+    "Traceback (most recent call last):",
+    "  File \"/mnt/d/hermes-ops/tg2/work/technocore-receipt-verifier/test_receipt_verifier.py\", line 33, in test_rejects_string_nonce_that_official_signed_lane_never_stores",
+    "    with self.assertRaisesRegex(ValueError, \"nonce must be an integer\"):",
+    "AssertionError: ValueError not raised",
+    "",
+    "----------------------------------------------------------------------",
+    "Ran 9 tests in 0.137s",
+    "",
+    "FAILED (failures=6)"
+  ],
+  "elapsed_seconds": 0.605,
+  "eval_pass": false,
+  "phase": "NEGATIVE_TEST_BASELINE",
+  "expected_failure_observed": true,
+  "artifact_paths": [
+    "/tmp/receipt_verifier.strict.py"
+  ]
+}

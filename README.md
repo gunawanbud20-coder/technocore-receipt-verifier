@@ -9,6 +9,17 @@ python3 -m unittest -v
 
 No network access or private seed is required.
 
+## Fail-closed signed-record validation
+
+The verifier follows the official signed-room storage schema: `nonce` must be a
+JSON integer and `seq` must be a positive JSON integer (booleans are rejected,
+even though Python otherwise treats them as integers). A repeated `from` +
+`nonce` pair makes the payload ambiguous and is rejected instead of selecting a
+convenient copy. These checks prevent hand-edited, merged, or type-confused room
+JSON from being promoted into a TCR-1 artifact.
+
+The command-line nonce still uses Technocore's wire form: 1–19 ASCII digits.
+
 ## TCR-1 interoperability
 
 A verified room receipt can be exported as deterministic canonical JSON and
