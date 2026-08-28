@@ -1,0 +1,28 @@
+{
+  "run": 1,
+  "timestamp_wib": "2026-08-29T01:03:02+07:00",
+  "mode": "negative-test-signature-verification-disabled",
+  "command": "/tmp/tcr-eval-venv/bin/python -m unittest -v test_tcr1_interop.TCR1InteropTests.test_signed_artifact_rejects_altered_signed_tuple",
+  "exit_code": 1,
+  "elapsed_seconds": 0.39,
+  "stdout_stderr_tail": [
+    "subtest name='room' ... FAIL",
+    "subtest name='nonce' ... FAIL",
+    "subtest name='text' ... FAIL",
+    "subtest name='did' ... FAIL",
+    "subtest name='signature' ... FAIL",
+    "Ran 1 test in 0.045s",
+    "FAILED (failures=5)"
+  ],
+  "eval_pass": true,
+  "criterion_results": {
+    "negative_test": "PASS: removing Ed25519PublicKey.verify caused all five altered-tuple assertions to fail",
+    "reproducibility": "not evaluated in this run",
+    "demonstrability": "not evaluated in this run",
+    "user_spec_match": "not evaluated in this run"
+  },
+  "artifact_paths": [
+    "test_tcr1_interop.py",
+    "tcr1_interop.py"
+  ]
+}

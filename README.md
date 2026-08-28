@@ -41,3 +41,22 @@ DID/nonce/text tuple occurred in the supplied room payload. It **does not**
 establish authorship, contribution truth, issuer acceptance, payment, or
 eligibility. TCR-1 remains responsible for signing the task receipt and
 verifying artifact integrity.
+
+### Cryptographically verified signed transport
+
+If the original unpadded base64url signature was preserved by the sender, pass
+it with the room name to verify Technocore's official
+`room|nonce|swept-text` Ed25519 canonical string before export:
+
+```bash
+python3 tcr1_interop.py room.json \
+  --did 'did:key:z6Mk...' --nonce 123 --text 'published artifact' \
+  --room lobby --signature '86-character-unpadded-base64url' \
+  --output signed-room-receipt.json
+```
+
+This artifact is separately labelled
+`cryptographically-verified-signed-transport`, preserves the signed tuple, and
+binds it to the SHA-256 digest of the exact input snapshot bytes. The server's
+ordinary room response does not retain signatures, so this stronger mode is
+available only when the sender kept the original signature.

@@ -1,0 +1,28 @@
+{
+  "run": 3,
+  "timestamp_wib": "2026-08-29T01:03:02+07:00",
+  "mode": "determinism-rerun",
+  "command": "/tmp/tcr-eval-venv/bin/python -m unittest -v",
+  "exit_code": 0,
+  "elapsed_seconds": 1.05,
+  "stdout_stderr_tail": [
+    "test_signed_artifact_rejects_altered_signed_tuple ... ok",
+    "test_signed_artifact_rejects_noncanonical_did_key_encoding ... ok",
+    "test_signed_artifact_rejects_standard_base64_signature_alphabet ... ok",
+    "test_signed_artifact_verifies_official_room_canonical_string ... ok",
+    "test_write_is_exclusive_and_preserves_exact_hashed_bytes ... ok",
+    "Ran 15 tests in 0.715s",
+    "OK"
+  ],
+  "eval_pass": true,
+  "criterion_results": {
+    "reproducibility": "PASS: second consecutive restored run passed the same 15 tests",
+    "demonstrability": "PASS",
+    "negative_error_paths": "PASS",
+    "user_spec_match": "PASS"
+  },
+  "artifact_paths": [
+    "eval-results/signed-transport-verification/run-1.json",
+    "eval-results/signed-transport-verification/run-2.json"
+  ]
+}

@@ -1,14 +1,75 @@
 #!/usr/bin/env python3
 import argparse
+import base64
 import hashlib
 import json
 import os
 from pathlib import Path
 
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
 from receipt_verifier import find_receipt
 
 
 CLAIM_SCOPE = "transport-presence-only"
+BASE58BTC_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+BASE64URL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+
+
+def _did_public_key(did):
+    if not isinstance(did, str) or len(did) != 56 or not did.startswith("did:key:z6Mk"):
+        raise ValueError("DID must be a canonical Ed25519 did:key")
+    number = 0
+    for character in did[9:]:
+        if character not in BASE58BTC_ALPHABET:
+            raise ValueError("DID must use canonical base58btc")
+        number = number * 58 + BASE58BTC_ALPHABET.index(character)
+    decoded = number.to_bytes((number.bit_length() + 7) // 8, "big")
+    if len(decoded) != 34 or not decoded.startswith(b"\xed\x01"):
+        raise ValueError("DID must contain an Ed25519 public key")
+    return decoded[2:]
+
+
+def build_signed_transport_artifact(snapshot, room, did, signature, nonce, text, uri):
+    """Verify and export an official Technocore say-signed transport tuple."""
+    payload = json.loads(snapshot)
+    receipt = find_receipt(payload, did, nonce, text)
+    try:
+        if (
+            not isinstance(signature, str)
+            or len(signature) != 86
+            or any(character not in BASE64URL_ALPHABET for character in signature)
+        ):
+            raise ValueError("signature must be 86 unpadded base64url characters")
+        raw_signature = base64.b64decode(signature + "==", altchars=b"-_", validate=True)
+        Ed25519PublicKey.from_public_bytes(_did_public_key(did)).verify(
+            raw_signature, f"{room}|{nonce}|{receipt['text']}".encode("utf-8")
+        )
+    except Exception as error:
+        raise ValueError("signature does not verify official room canonical string") from error
+    document = {
+        "claim_scope": "cryptographically-verified-signed-transport",
+        "receipt": receipt,
+        "signed_transport": {
+            "did": did,
+            "nonce": str(nonce),
+            "room": room,
+            "signature": signature,
+            "snapshot_sha256": hashlib.sha256(snapshot).hexdigest(),
+        },
+        "type": "technocore-signed-room-receipt",
+        "version": 1,
+    }
+    encoded = json.dumps(
+        document, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8") + b"\n"
+    descriptor = {
+        "type": document["type"],
+        "uri": uri,
+        "sha256": hashlib.sha256(encoded).hexdigest(),
+        "size": len(encoded),
+    }
+    return encoded, descriptor
 
 
 def build_transport_artifact(payload, did, nonce, text, uri):
@@ -52,6 +113,18 @@ def write_transport_artifact(target, payload, did, nonce, text):
     return descriptor
 
 
+def write_signed_transport_artifact(target, snapshot, room, did, signature, nonce, text):
+    path = Path(target)
+    encoded, descriptor = build_signed_transport_artifact(
+        snapshot, room, did, signature, nonce, text, f"file:{path.name}"
+    )
+    with path.open("xb") as stream:
+        stream.write(encoded)
+        stream.flush()
+        os.fsync(stream.fileno())
+    return descriptor
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Export a canonical Technocore room receipt as a TCR-1 artifact"
@@ -60,12 +133,22 @@ def main():
     parser.add_argument("--did", required=True)
     parser.add_argument("--nonce", required=True)
     parser.add_argument("--text", required=True)
+    parser.add_argument("--room")
+    parser.add_argument("--signature")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
-    payload = json.loads(Path(args.room_json).read_text(encoding="utf-8"))
-    descriptor = write_transport_artifact(
-        args.output, payload, args.did, args.nonce, args.text
-    )
+    snapshot = Path(args.room_json).read_bytes()
+    if (args.room is None) != (args.signature is None):
+        parser.error("--room and --signature must be supplied together")
+    if args.room is not None:
+        descriptor = write_signed_transport_artifact(
+            args.output, snapshot, args.room, args.did, args.signature, args.nonce, args.text
+        )
+    else:
+        payload = json.loads(snapshot)
+        descriptor = write_transport_artifact(
+            args.output, payload, args.did, args.nonce, args.text
+        )
     print(json.dumps(descriptor, ensure_ascii=False, sort_keys=True))
 
 
