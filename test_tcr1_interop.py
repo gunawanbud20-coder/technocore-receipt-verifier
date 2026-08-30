@@ -88,6 +88,47 @@ class TCR1InteropTests(unittest.TestCase):
         )
         self.assertEqual(document["receipt"]["sequence"], 42)
 
+    def test_signed_artifact_rejects_duplicate_json_keys(self):
+        key, did = _signed_identity()
+        signature = base64.urlsafe_b64encode(
+            key.sign(b"lobby|7|shipped verifier")
+        ).decode().rstrip("=")
+        valid_message = (
+            f'{{"from":"{did}","nonce":7,"text":"shipped verifier","seq":42}}'
+        )
+        duplicate_cases = {
+            "messages": f'{{"messages":[],"messages":[{valid_message}]}}',
+            "from": (
+                f'{{"messages":[{{"from":"did:key:zA","from":"{did}",'
+                '"nonce":7,"text":"shipped verifier","seq":42}]}'
+            ),
+            "nonce": (
+                f'{{"messages":[{{"from":"{did}","nonce":6,"nonce":7,'
+                '"text":"shipped verifier","seq":42}]}'
+            ),
+            "text": (
+                f'{{"messages":[{{"from":"{did}","nonce":7,"text":"other",'
+                '"text":"shipped verifier","seq":42}]}'
+            ),
+            "seq": (
+                f'{{"messages":[{{"from":"{did}","nonce":7,'
+                '"text":"shipped verifier","seq":41,"seq":42}]}'
+            ),
+        }
+
+        for name, snapshot in duplicate_cases.items():
+            with self.subTest(name=name):
+                with self.assertRaisesRegex(ValueError, "duplicate JSON key"):
+                    build_signed_transport_artifact(
+                        snapshot.encode(),
+                        "lobby",
+                        did,
+                        signature,
+                        "7",
+                        "shipped verifier",
+                        "file:signed.json",
+                    )
+
     def test_signed_artifact_rejects_noncanonical_did_key_encoding(self):
         key, did = _signed_identity()
         noncanonical_did = did[:9] + "1" + did[9:]

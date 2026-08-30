@@ -30,9 +30,18 @@ def _did_public_key(did):
     return decoded[2:]
 
 
+def _reject_duplicate_keys(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
 def build_signed_transport_artifact(snapshot, room, did, signature, nonce, text, uri):
     """Verify and export an official Technocore say-signed transport tuple."""
-    payload = json.loads(snapshot)
+    payload = json.loads(snapshot, object_pairs_hook=_reject_duplicate_keys)
     receipt = find_receipt(payload, did, nonce, text)
     try:
         if (
