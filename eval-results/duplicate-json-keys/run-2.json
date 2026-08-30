@@ -1,0 +1,14 @@
+{
+  "run": 2,
+  "phase": "negative_test",
+  "command": "replace strict object_pairs_hook with default json.loads; python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_signed_artifact_rejects_duplicate_json_keys",
+  "exit_code": 1,
+  "elapsed_seconds": 0.18,
+  "stdout_stderr_tail": "Ran 1 test in 0.060s; FAILED (failures=5). Removing production duplicate-key detection caused all messages/from/nonce/text/seq subtests to report ValueError not raised.",
+  "criteria": {
+    "eval_fails_without_fix": "pass",
+    "failure_matches_missing_security_check": "pass"
+  },
+  "eval_pass": false,
+  "artifacts": ["tcr1_interop.py", "test_tcr1_interop.py"]
+}

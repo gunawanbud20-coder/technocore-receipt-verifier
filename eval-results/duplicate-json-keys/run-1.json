@@ -1,0 +1,15 @@
+{
+  "run": 1,
+  "phase": "RED",
+  "command": "python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_signed_artifact_rejects_duplicate_json_keys",
+  "exit_code": 1,
+  "elapsed_seconds": 0.40,
+  "stdout_stderr_tail": "Ran 1 test in 0.152s; FAILED (failures=5). Every subtest (messages, from, nonce, text, seq) failed with AssertionError: ValueError not raised.",
+  "criteria": {
+    "regression_test_exercises_raw_duplicate_keys": "pass",
+    "baseline_rejects_duplicate_keys": "fail_as_expected",
+    "failure_is_due_to_missing_behavior": "pass"
+  },
+  "eval_pass": false,
+  "artifacts": ["test_tcr1_interop.py", "eval-results/duplicate-json-keys/eval.md"]
+}

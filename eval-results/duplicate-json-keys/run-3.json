@@ -1,0 +1,17 @@
+{
+  "run": 3,
+  "phase": "restored_final",
+  "command": "python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_signed_artifact_rejects_duplicate_json_keys && python3 -m unittest -v && python3 -m compileall -q . && git diff --check",
+  "exit_code": 0,
+  "elapsed_seconds": 0.86,
+  "stdout_stderr_tail": "Focused regression: Ran 1 test, OK. Full suite: Ran 16 tests in 0.559s, OK. compileall and git diff --check passed.",
+  "criteria": {
+    "duplicate_top_level_and_receipt_keys_rejected": "pass",
+    "valid_snapshots_remain_supported": "pass",
+    "full_suite_passes": "pass",
+    "negative_test_proved_eval": "pass",
+    "deterministic_repeat": "pass"
+  },
+  "eval_pass": true,
+  "artifacts": ["tcr1_interop.py", "test_tcr1_interop.py", "eval-results/duplicate-json-keys/"]
+}
