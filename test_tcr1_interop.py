@@ -261,6 +261,33 @@ class TCR1InteropTests(unittest.TestCase):
             self.assertNotEqual(run.returncode, 0)
             self.assertFalse(output.exists())
 
+    def test_cli_rejects_duplicate_keys_in_unsigned_snapshot(self):
+        duplicate_snapshot = (
+            '{"messages":[],"messages":['
+            '{"from":"did:key:zA","nonce":7,"text":"shipped verifier","seq":42}'
+            "]}"
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            snapshot = Path(temp) / "room.json"
+            output = Path(temp) / "receipt.json"
+            snapshot.write_text(duplicate_snapshot)
+            run = subprocess.run(
+                [
+                    sys.executable,
+                    "tcr1_interop.py",
+                    str(snapshot),
+                    "--did", "did:key:zA",
+                    "--nonce", "7",
+                    "--text", "shipped verifier",
+                    "--output", str(output),
+                ],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertFalse(output.exists())
+
     def test_write_is_exclusive_and_preserves_exact_hashed_bytes(self):
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "receipt.json"

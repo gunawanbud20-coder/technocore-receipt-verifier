@@ -1,4 +1,9 @@
+import subprocess
+import sys
+import tempfile
 import unittest
+from pathlib import Path
+
 from receipt_verifier import find_receipt
 
 
@@ -48,6 +53,31 @@ class ReceiptTests(unittest.TestCase):
                 ]}
                 with self.assertRaisesRegex(ValueError, "sequence must be a positive integer"):
                     find_receipt(data, "did:key:zA", "7", "expected")
+
+    def test_cli_rejects_duplicate_keys_in_room_snapshot(self):
+        duplicate_snapshot = (
+            '{"messages":[],"messages":['
+            '{"from":"did:key:zA","nonce":7,"text":"expected","seq":4}'
+            "]}"
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            snapshot = Path(temp) / "room.json"
+            snapshot.write_text(duplicate_snapshot)
+            run = subprocess.run(
+                [
+                    sys.executable,
+                    "receipt_verifier.py",
+                    str(snapshot),
+                    "--did", "did:key:zA",
+                    "--nonce", "7",
+                    "--text", "expected",
+                ],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertNotIn('"sequence": 4', run.stdout)
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from receipt_verifier import find_receipt
+from receipt_verifier import find_receipt, reject_duplicate_keys
 
 
 CLAIM_SCOPE = "transport-presence-only"
@@ -30,18 +30,9 @@ def _did_public_key(did):
     return decoded[2:]
 
 
-def _reject_duplicate_keys(pairs):
-    result = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError(f"duplicate JSON key: {key}")
-        result[key] = value
-    return result
-
-
 def build_signed_transport_artifact(snapshot, room, did, signature, nonce, text, uri):
     """Verify and export an official Technocore say-signed transport tuple."""
-    payload = json.loads(snapshot, object_pairs_hook=_reject_duplicate_keys)
+    payload = json.loads(snapshot, object_pairs_hook=reject_duplicate_keys)
     receipt = find_receipt(payload, did, nonce, text)
     try:
         if (
@@ -154,7 +145,7 @@ def main():
             args.output, snapshot, args.room, args.did, args.signature, args.nonce, args.text
         )
     else:
-        payload = json.loads(snapshot)
+        payload = json.loads(snapshot, object_pairs_hook=reject_duplicate_keys)
         descriptor = write_transport_artifact(
             args.output, payload, args.did, args.nonce, args.text
         )

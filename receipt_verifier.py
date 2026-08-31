@@ -7,6 +7,15 @@ from pathlib import Path
 INVISIBLE = {"Cc", "Cf", "Cs", "Co", "Zl", "Zp"}
 
 
+def reject_duplicate_keys(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
 def sweep(text):
     clean = "".join(" " if unicodedata.category(c) in INVISIBLE else c for c in text).strip()
     if not clean:
@@ -49,7 +58,10 @@ def main():
     p.add_argument("--nonce", required=True)
     p.add_argument("--text", required=True)
     args = p.parse_args()
-    print(json.dumps(find_receipt(json.loads(Path(args.room_json).read_text()), args.did, args.nonce, args.text), sort_keys=True))
+    payload = json.loads(
+        Path(args.room_json).read_text(), object_pairs_hook=reject_duplicate_keys
+    )
+    print(json.dumps(find_receipt(payload, args.did, args.nonce, args.text), sort_keys=True))
 
 
 if __name__ == "__main__":
