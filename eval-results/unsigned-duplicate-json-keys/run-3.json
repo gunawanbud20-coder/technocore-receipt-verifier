@@ -1,0 +1,24 @@
+{
+  "run": 3,
+  "phase": "GREEN/restored",
+  "command": "python3 -m unittest -v && python3 -m compileall -q receipt_verifier.py tcr1_interop.py test_receipt_verifier.py test_tcr1_interop.py && git diff --check",
+  "exit_code": 0,
+  "elapsed_seconds": 1.118,
+  "stdout_stderr_tail": "Ran 18 tests in 0.879s; OK; compileall passed; git diff --check passed",
+  "eval": {
+    "reproducible_focused_test": true,
+    "both_unsigned_clis_reject_duplicate_keys": true,
+    "rejected_tcr1_command_creates_no_artifact": true,
+    "negative_test_failed_without_hooks": true,
+    "full_suite_passes": true,
+    "valid_signed_and_unsigned_paths_regression_tested": true
+  },
+  "artifacts": [
+    "eval-results/unsigned-duplicate-json-keys/eval.md",
+    "eval-results/unsigned-duplicate-json-keys/run-1.json",
+    "eval-results/unsigned-duplicate-json-keys/run-2.json",
+    "/tmp/unsigned-final.log",
+    "/tmp/unsigned-final-after-doc.log"
+  ],
+  "pass": true
+}
