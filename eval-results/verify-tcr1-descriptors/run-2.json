@@ -1,0 +1,13 @@
+{
+  "run": 2,
+  "phase": "NEGATIVE",
+  "command": "temporarily remove tcr1_verify.py; python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_accepts_generated_artifact; restore tcr1_verify.py",
+  "exit_code": 1,
+  "elapsed_seconds": 0.179,
+  "stdout_stderr_tail": "AssertionError: 2 != 0: can't open file tcr1_verify.py: No such file or directory; Ran 1 test; FAILED (failures=1)",
+  "eval": {
+    "negative_test": "PASS",
+    "implementation_restored": true
+  },
+  "artifacts": ["/tmp/tcr1-negative.log"]
+}

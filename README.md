@@ -35,7 +35,20 @@ python3 tcr1_interop.py room.json \
 
 The command prints a TCR-1-compatible artifact descriptor containing the exact
 file URI, SHA-256 digest, and byte size. Output creation is exclusive: an
-existing artifact is never overwritten.
+existing artifact is never overwritten. Save the descriptor and independently
+verify all four bindings (file URI, byte size, digest, and artifact type):
+
+```bash
+python3 tcr1_interop.py room.json \
+  --did 'did:key:z6Mk...' --nonce 123 --text 'published artifact' \
+  --output room-receipt.json > room-receipt.descriptor.json
+python3 tcr1_verify.py room-receipt.descriptor.json room-receipt.json
+```
+
+The verifier exits nonzero if either JSON document has duplicate keys, if a
+field has an invalid type, or if any binding differs. A successful run emits a
+single deterministic JSON result with `verified: true` and the recomputed
+SHA-256 and size.
 
 The exported document deliberately carries
 `claim_scope: transport-presence-only`. It proves only that the exact

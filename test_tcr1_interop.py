@@ -300,6 +300,179 @@ class TCR1InteropTests(unittest.TestCase):
                     target, self.room, "did:key:zA", "7", "shipped verifier"
                 )
 
+    def test_descriptor_verifier_cli_accepts_generated_artifact(self):
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            descriptor = write_transport_artifact(
+                artifact, self.room, "did:key:zA", "7", "shipped verifier"
+            )
+            descriptor_path.write_text(json.dumps(descriptor))
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(run.returncode, 0, run.stderr)
+            self.assertEqual(json.loads(run.stdout), {
+                "sha256": descriptor["sha256"],
+                "size": descriptor["size"],
+                "type": "technocore-room-receipt",
+                "verified": True,
+            })
+
+    def test_descriptor_verifier_cli_rejects_altered_artifact_bytes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            descriptor = write_transport_artifact(
+                artifact, self.room, "did:key:zA", "7", "shipped verifier"
+            )
+            descriptor_path.write_text(json.dumps(descriptor))
+            artifact.write_bytes(artifact.read_bytes() + b" ")
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("artifact size does not match descriptor", run.stderr)
+            self.assertEqual(run.stdout, "")
+
+    def test_descriptor_verifier_cli_rejects_digest_mismatch_at_same_size(self):
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            descriptor = write_transport_artifact(
+                artifact, self.room, "did:key:zA", "7", "shipped verifier"
+            )
+            descriptor_path.write_text(json.dumps(descriptor))
+            altered = bytearray(artifact.read_bytes())
+            altered[-2] ^= 1
+            artifact.write_bytes(altered)
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("artifact SHA-256 does not match descriptor", run.stderr)
+            self.assertEqual(run.stdout, "")
+
+    def test_descriptor_verifier_cli_rejects_uri_for_different_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            descriptor = write_transport_artifact(
+                artifact, self.room, "did:key:zA", "7", "shipped verifier"
+            )
+            descriptor["uri"] = "file:other.json"
+            descriptor_path.write_text(json.dumps(descriptor))
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("descriptor URI does not name artifact", run.stderr)
+            self.assertEqual(run.stdout, "")
+
+    def test_descriptor_verifier_cli_rejects_artifact_type_mismatch(self):
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            descriptor = write_transport_artifact(
+                artifact, self.room, "did:key:zA", "7", "shipped verifier"
+            )
+            descriptor["type"] = "technocore-signed-room-receipt"
+            descriptor_path.write_text(json.dumps(descriptor))
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("artifact type does not match descriptor", run.stderr)
+            self.assertEqual(run.stdout, "")
+
+    def test_descriptor_verifier_cli_rejects_duplicate_descriptor_keys(self):
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            descriptor = write_transport_artifact(
+                artifact, self.room, "did:key:zA", "7", "shipped verifier"
+            )
+            descriptor_path.write_text(
+                '{"sha256":"' + "0" * 64 + '",'
+                + json.dumps(descriptor, separators=(",", ":"))[1:]
+            )
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("duplicate JSON key: sha256", run.stderr)
+            self.assertEqual(run.stdout, "")
+
+    def test_descriptor_verifier_cli_rejects_boolean_size(self):
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            descriptor = write_transport_artifact(
+                artifact, self.room, "did:key:zA", "7", "shipped verifier"
+            )
+            descriptor["size"] = True
+            descriptor_path.write_text(json.dumps(descriptor))
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("descriptor has invalid size", run.stderr)
+            self.assertEqual(run.stdout, "")
+
+    def test_descriptor_verifier_cli_rejects_duplicate_artifact_keys(self):
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            artifact_bytes = (
+                b'{"type":"other","type":"technocore-room-receipt","version":1}\n'
+            )
+            artifact.write_bytes(artifact_bytes)
+            descriptor = {
+                "type": "technocore-room-receipt",
+                "uri": "file:receipt.json",
+                "sha256": hashlib.sha256(artifact_bytes).hexdigest(),
+                "size": len(artifact_bytes),
+            }
+            descriptor_path.write_text(json.dumps(descriptor))
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("duplicate JSON key: type", run.stderr)
+            self.assertEqual(run.stdout, "")
+
 
 if __name__ == "__main__":
     unittest.main()
