@@ -1,0 +1,21 @@
+{
+  "run": 3,
+  "phase": "GREEN",
+  "command": "python3 -m unittest -v; python3 -m compileall -q receipt_verifier.py tcr1_interop.py tcr1_verify.py test_receipt_verifier.py test_tcr1_interop.py; git diff --check",
+  "exit_code": 0,
+  "elapsed_seconds": 5.54,
+  "stdout_stderr_tail": "Ran 26 tests in 5.035s; OK; compileall passed; git diff --check passed",
+  "eval": {
+    "reproducibility": "PASS: focused 18-test class passed twice",
+    "demonstrability": "PASS: generated descriptor verified through real CLI",
+    "fail_closed_behavior": "PASS: size, digest, URI, type, duplicate-key, and boolean-size regressions passed",
+    "negative_test": "PASS: implementation removal made valid CLI test fail; restore made suites pass",
+    "user_spec_match": "PASS: standalone owned repo and verified GitHub identity"
+  },
+  "artifacts": [
+    "tcr1_verify.py",
+    "test_tcr1_interop.py",
+    "README.md",
+    "eval-results/verify-tcr1-descriptors/"
+  ]
+}
