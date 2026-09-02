@@ -323,6 +323,71 @@ class TCR1InteropTests(unittest.TestCase):
                 "verified": True,
             })
 
+    def test_descriptor_verifier_cli_accepts_valid_signed_artifact(self):
+        key, did = _signed_identity()
+        room = {"messages": [{**self.room["messages"][0], "from": did}]}
+        room_bytes = json.dumps(room, separators=(",", ":")).encode()
+        signature = base64.urlsafe_b64encode(
+            key.sign(b"lobby|7|shipped verifier")
+        ).decode().rstrip("=")
+        encoded, descriptor = build_signed_transport_artifact(
+            room_bytes, "lobby", did, signature, "7", "shipped verifier", "file:signed.json"
+        )
+
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "signed.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            artifact.write_bytes(encoded)
+            descriptor_path.write_text(json.dumps(descriptor))
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(run.returncode, 0, run.stderr)
+            self.assertTrue(json.loads(run.stdout)["verified"])
+
+    def test_descriptor_verifier_cli_rejects_forged_signed_artifact(self):
+        key, did = _signed_identity()
+        room = {"messages": [{**self.room["messages"][0], "from": did}]}
+        room_bytes = json.dumps(room, separators=(",", ":")).encode()
+        signature = base64.urlsafe_b64encode(
+            key.sign(b"lobby|7|shipped verifier")
+        ).decode().rstrip("=")
+        encoded, _ = build_signed_transport_artifact(
+            room_bytes, "lobby", did, signature, "7", "shipped verifier", "file:signed.json"
+        )
+        document = json.loads(encoded)
+        document["signed_transport"]["signature"] = (
+            "A" if signature[0] != "A" else "B"
+        ) + signature[1:]
+        forged = json.dumps(
+            document, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode() + b"\n"
+
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "signed.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            artifact.write_bytes(forged)
+            descriptor_path.write_text(json.dumps({
+                "type": document["type"],
+                "uri": "file:signed.json",
+                "sha256": hashlib.sha256(forged).hexdigest(),
+                "size": len(forged),
+            }))
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("signed artifact signature does not verify", run.stderr)
+            self.assertEqual(run.stdout, "")
+
     def test_descriptor_verifier_cli_rejects_altered_artifact_bytes(self):
         with tempfile.TemporaryDirectory() as temp:
             artifact = Path(temp) / "receipt.json"

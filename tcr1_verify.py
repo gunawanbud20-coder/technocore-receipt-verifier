@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from receipt_verifier import reject_duplicate_keys
+from tcr1_interop import verify_signed_artifact
 
 
 def main():
@@ -30,6 +31,11 @@ def main():
     artifact_document = json.loads(artifact, object_pairs_hook=reject_duplicate_keys)
     if not isinstance(artifact_document, dict) or artifact_document.get("type") != descriptor["type"]:
         parser.error("artifact type does not match descriptor")
+    if descriptor["type"] == "technocore-signed-room-receipt":
+        try:
+            verify_signed_artifact(artifact_document)
+        except ValueError as error:
+            parser.error(str(error))
     print(json.dumps({
         "sha256": descriptor["sha256"],
         "size": descriptor["size"],

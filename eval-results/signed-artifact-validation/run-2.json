@@ -1,0 +1,11 @@
+{
+  "run": 2,
+  "phase": "negative-test-production-reverted",
+  "command": "git checkout -- tcr1_interop.py tcr1_verify.py && python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_rejects_forged_signed_artifact",
+  "exit_code": 1,
+  "elapsed_seconds": 0.47,
+  "stdout_stderr_tail": "AssertionError: 0 == 0; Ran 1 test in 0.225s; FAILED (failures=1)",
+  "eval_pass": true,
+  "reason": "With validation removed, the regression fails for the expected reason; the eval detects the production change.",
+  "artifacts": ["test_tcr1_interop.py"]
+}
