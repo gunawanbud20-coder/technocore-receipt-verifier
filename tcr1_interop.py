@@ -30,6 +30,33 @@ def _did_public_key(did):
     return decoded[2:]
 
 
+def verify_signed_artifact(document):
+    """Verify the signed tuple embedded in a signed room-receipt artifact."""
+    try:
+        transport = document["signed_transport"]
+        receipt = document["receipt"]
+        did = transport["did"]
+        nonce = transport["nonce"]
+        room = transport["room"]
+        signature = transport["signature"]
+        if receipt["did"] != did or receipt["nonce"] != nonce:
+            raise ValueError("signed tuple does not match receipt")
+        if (
+            not isinstance(room, str)
+            or not room
+            or not isinstance(signature, str)
+            or len(signature) != 86
+            or any(character not in BASE64URL_ALPHABET for character in signature)
+        ):
+            raise ValueError("invalid signed tuple")
+        raw_signature = base64.b64decode(signature + "==", altchars=b"-_", validate=True)
+        Ed25519PublicKey.from_public_bytes(_did_public_key(did)).verify(
+            raw_signature, f"{room}|{nonce}|{receipt['text']}".encode("utf-8")
+        )
+    except Exception as error:
+        raise ValueError("signed artifact signature does not verify") from error
+
+
 def build_signed_transport_artifact(snapshot, room, did, signature, nonce, text, uri):
     """Verify and export an official Technocore say-signed transport tuple."""
     payload = json.loads(snapshot, object_pairs_hook=reject_duplicate_keys)

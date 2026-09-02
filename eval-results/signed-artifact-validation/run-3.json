@@ -1,0 +1,23 @@
+{
+  "run": 3,
+  "phase": "green-restored",
+  "command": "python3 -m unittest -v",
+  "exit_code": 0,
+  "elapsed_seconds": [5.35, 5.74],
+  "stdout_stderr_tail": "test_descriptor_verifier_cli_accepts_valid_signed_artifact ... ok; test_descriptor_verifier_cli_rejects_forged_signed_artifact ... ok; Ran 28 tests; OK",
+  "eval_pass": true,
+  "criteria": {
+    "forged_signed_artifact_rejected": true,
+    "valid_signed_artifact_accepted": true,
+    "full_suite_passes": true,
+    "two_unchanged_runs_same_result": true,
+    "negative_test_failed_without_change": true,
+    "unsigned_behavior_regression": false
+  },
+  "artifacts": [
+    "tcr1_interop.py",
+    "tcr1_verify.py",
+    "test_tcr1_interop.py",
+    "eval-results/signed-artifact-validation/"
+  ]
+}

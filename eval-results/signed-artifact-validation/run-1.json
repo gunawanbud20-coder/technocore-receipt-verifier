@@ -1,0 +1,11 @@
+{
+  "run": 1,
+  "phase": "red-baseline",
+  "command": "python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_rejects_forged_signed_artifact",
+  "exit_code": 1,
+  "elapsed_seconds": 1.00,
+  "stdout_stderr_tail": "AssertionError: 0 == 0; Ran 1 test; FAILED (failures=1)",
+  "eval_pass": false,
+  "reason": "Baseline incorrectly accepted a forged signed artifact with a recomputed descriptor.",
+  "artifacts": ["test_tcr1_interop.py"]
+}
