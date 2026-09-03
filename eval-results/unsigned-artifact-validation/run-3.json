@@ -1,0 +1,24 @@
+{
+  "run": 3,
+  "mode": "restored-fix-full-suite",
+  "command": "python3 -m unittest -v (twice), then fresh-venv/bin/python -m unittest -v",
+  "exit_code": 0,
+  "elapsed_seconds": [10.79, 10.59, 7.51],
+  "stdout_stderr_tail": [
+    "Ran 31 tests in 10.192s; OK; elapsed=10.79 exit=0",
+    "Ran 31 tests in 9.966s; OK; elapsed=10.59 exit=0",
+    "Fresh venv + requirements install: Ran 31 tests in 7.069s; OK; elapsed=7.51 exit=0"
+  ],
+  "eval": {
+    "full_suite_passes": true,
+    "deterministic_pass_count": "31/31 twice",
+    "negative_test_documented_in": "run-1.json",
+    "valid_interoperability_paths_preserved": true,
+    "verdict": "PASS"
+  },
+  "artifact_paths": [
+    "eval-results/unsigned-artifact-validation/run-1.json",
+    "eval-results/unsigned-artifact-validation/run-2.json",
+    "eval-results/unsigned-artifact-validation/run-3.json"
+  ]
+}
