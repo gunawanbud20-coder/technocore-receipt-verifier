@@ -323,6 +323,78 @@ class TCR1InteropTests(unittest.TestCase):
                 "verified": True,
             })
 
+    def test_descriptor_verifier_cli_rejects_unsigned_artifact_without_receipt(self):
+        artifact_bytes = b'{"type":"technocore-room-receipt"}\n'
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            artifact.write_bytes(artifact_bytes)
+            descriptor_path.write_text(json.dumps({
+                "type": "technocore-room-receipt",
+                "uri": "file:receipt.json",
+                "sha256": hashlib.sha256(artifact_bytes).hexdigest(),
+                "size": len(artifact_bytes),
+            }))
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("unsigned artifact has invalid schema", run.stderr)
+            self.assertEqual(run.stdout, "")
+
+    def test_unsigned_artifact_requires_canonical_envelope(self):
+        from tcr1_verify import verify_unsigned_artifact
+
+        valid = {
+            "claim_scope": "transport-presence-only",
+            "receipt": {},
+            "type": "technocore-room-receipt",
+            "version": 1,
+        }
+        invalid = (
+            {**valid, "claim_scope": "authorship"},
+            {**valid, "version": True},
+            {**valid, "extra": "unbound"},
+        )
+
+        for document in invalid:
+            with self.subTest(document=document):
+                with self.assertRaisesRegex(ValueError, "invalid schema"):
+                    verify_unsigned_artifact(document)
+
+    def test_unsigned_artifact_requires_canonical_receipt(self):
+        from tcr1_verify import verify_unsigned_artifact
+
+        receipt = {
+            "did": "did:key:zA",
+            "nonce": "7",
+            "sequence": 42,
+            "text": "shipped verifier",
+        }
+        envelope = {
+            "claim_scope": "transport-presence-only",
+            "receipt": receipt,
+            "type": "technocore-room-receipt",
+            "version": 1,
+        }
+        invalid_receipts = (
+            {**receipt, "extra": "unbound"},
+            {**receipt, "did": ""},
+            {**receipt, "nonce": "١"},
+            {**receipt, "sequence": True},
+            {**receipt, "sequence": 0},
+            {**receipt, "text": " shipped verifier"},
+        )
+
+        for invalid_receipt in invalid_receipts:
+            with self.subTest(receipt=invalid_receipt):
+                with self.assertRaisesRegex(ValueError, "invalid schema"):
+                    verify_unsigned_artifact({**envelope, "receipt": invalid_receipt})
+
     def test_descriptor_verifier_cli_accepts_valid_signed_artifact(self):
         key, did = _signed_identity()
         room = {"messages": [{**self.room["messages"][0], "from": did}]}

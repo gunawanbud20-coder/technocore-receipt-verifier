@@ -1,0 +1,20 @@
+{
+  "run": 2,
+  "mode": "restored-fix-focused",
+  "command": "python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_rejects_unsigned_artifact_without_receipt test_tcr1_interop.TCR1InteropTests.test_unsigned_artifact_requires_canonical_envelope test_tcr1_interop.TCR1InteropTests.test_unsigned_artifact_requires_canonical_receipt test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_accepts_generated_artifact test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_accepts_valid_signed_artifact",
+  "exit_code": 0,
+  "elapsed_seconds": 1.824,
+  "stdout_stderr_tail": "Ran 5 tests in 1.824s; OK",
+  "eval": {
+    "hollow_unsigned_artifact_rejected": true,
+    "canonical_envelope_enforced": true,
+    "canonical_receipt_enforced": true,
+    "valid_unsigned_artifact_accepted": true,
+    "valid_signed_artifact_accepted": true,
+    "verdict": "PASS"
+  },
+  "artifact_paths": [
+    "tcr1_verify.py",
+    "test_tcr1_interop.py"
+  ]
+}

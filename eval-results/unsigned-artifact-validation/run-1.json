@@ -1,0 +1,17 @@
+{
+  "run": 1,
+  "mode": "negative-test-baseline-production",
+  "command": "python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_rejects_unsigned_artifact_without_receipt",
+  "exit_code": 1,
+  "elapsed_seconds": 0.97,
+  "stdout_stderr_tail": "AssertionError: 0 == 0; Ran 1 test; FAILED (failures=1)",
+  "eval": {
+    "baseline_accepts_hollow_artifact": true,
+    "negative_test_fails_for_expected_reason": true,
+    "verdict": "PASS"
+  },
+  "artifact_paths": [
+    "test_tcr1_interop.py",
+    "tcr1_verify.py"
+  ]
+}

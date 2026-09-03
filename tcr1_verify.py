@@ -4,8 +4,37 @@ import hashlib
 import json
 from pathlib import Path
 
-from receipt_verifier import reject_duplicate_keys
+from receipt_verifier import reject_duplicate_keys, sweep
 from tcr1_interop import verify_signed_artifact
+
+
+def verify_unsigned_artifact(document):
+    if (
+        set(document) != {"claim_scope", "receipt", "type", "version"}
+        or document["claim_scope"] != "transport-presence-only"
+        or document["type"] != "technocore-room-receipt"
+        or type(document["version"]) is not int
+        or document["version"] != 1
+        or not isinstance(document["receipt"], dict)
+    ):
+        raise ValueError("unsigned artifact has invalid schema")
+    receipt = document["receipt"]
+    nonce = receipt.get("nonce")
+    text = receipt.get("text")
+    if (
+        set(receipt) != {"did", "nonce", "sequence", "text"}
+        or not isinstance(receipt["did"], str)
+        or not receipt["did"]
+        or not isinstance(nonce, str)
+        or not nonce.isascii()
+        or not nonce.isdigit()
+        or not 1 <= len(nonce) <= 19
+        or type(receipt["sequence"]) is not int
+        or receipt["sequence"] <= 0
+        or not isinstance(text, str)
+        or sweep(text) != text
+    ):
+        raise ValueError("unsigned artifact has invalid schema")
 
 
 def main():
@@ -34,6 +63,11 @@ def main():
     if descriptor["type"] == "technocore-signed-room-receipt":
         try:
             verify_signed_artifact(artifact_document)
+        except ValueError as error:
+            parser.error(str(error))
+    elif descriptor["type"] == "technocore-room-receipt":
+        try:
+            verify_unsigned_artifact(artifact_document)
         except ValueError as error:
             parser.error(str(error))
     print(json.dumps({
