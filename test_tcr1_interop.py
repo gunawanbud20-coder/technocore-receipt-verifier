@@ -12,6 +12,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from tcr1_interop import (
     build_signed_transport_artifact,
     build_transport_artifact,
+    verify_signed_artifact,
     write_transport_artifact,
 )
 
@@ -420,6 +421,89 @@ class TCR1InteropTests(unittest.TestCase):
 
             self.assertEqual(run.returncode, 0, run.stderr)
             self.assertTrue(json.loads(run.stdout)["verified"])
+
+    def test_descriptor_verifier_cli_rejects_signed_artifact_with_false_claim_scope(self):
+        key, did = _signed_identity()
+        room = {"messages": [{**self.room["messages"][0], "from": did}]}
+        room_bytes = json.dumps(room, separators=(",", ":")).encode()
+        signature = base64.urlsafe_b64encode(
+            key.sign(b"lobby|7|shipped verifier")
+        ).decode().rstrip("=")
+        encoded, _ = build_signed_transport_artifact(
+            room_bytes, "lobby", did, signature, "7", "shipped verifier", "file:signed.json"
+        )
+        document = json.loads(encoded)
+        document["claim_scope"] = "authorship"
+        malformed = json.dumps(
+            document, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode() + b"\n"
+
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "signed.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            artifact.write_bytes(malformed)
+            descriptor_path.write_text(json.dumps({
+                "type": document["type"],
+                "uri": "file:signed.json",
+                "sha256": hashlib.sha256(malformed).hexdigest(),
+                "size": len(malformed),
+            }))
+
+            run = subprocess.run(
+                [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(run.returncode, 0)
+            self.assertIn("signed artifact has invalid schema", run.stderr)
+            self.assertEqual(run.stdout, "")
+
+    def test_signed_artifact_requires_canonical_schema(self):
+        key, did = _signed_identity()
+        room = {"messages": [{**self.room["messages"][0], "from": did}]}
+        snapshot = json.dumps(room, separators=(",", ":")).encode()
+        signature = base64.urlsafe_b64encode(
+            key.sign(b"lobby|7|shipped verifier")
+        ).decode().rstrip("=")
+        encoded, _ = build_signed_transport_artifact(
+            snapshot, "lobby", did, signature, "7", "shipped verifier", "file:signed.json"
+        )
+        valid = json.loads(encoded)
+        invalid_documents = {
+            "extra envelope field": {**valid, "unbound": True},
+            "wrong type": {**valid, "type": "technocore-room-receipt"},
+            "boolean version": {**valid, "version": True},
+            "extra receipt field": {
+                **valid,
+                "receipt": {**valid["receipt"], "unbound": True},
+            },
+            "boolean sequence": {
+                **valid,
+                "receipt": {**valid["receipt"], "sequence": True},
+            },
+            "unswept text": {
+                **valid,
+                "receipt": {**valid["receipt"], "text": " shipped verifier"},
+            },
+            "extra signed transport field": {
+                **valid,
+                "signed_transport": {**valid["signed_transport"], "unbound": True},
+            },
+            "integer transport nonce": {
+                **valid,
+                "signed_transport": {**valid["signed_transport"], "nonce": 7},
+            },
+            "malformed snapshot digest": {
+                **valid,
+                "signed_transport": {**valid["signed_transport"], "snapshot_sha256": "not-a-digest"},
+            },
+        }
+
+        for name, document in invalid_documents.items():
+            with self.subTest(name=name):
+                with self.assertRaisesRegex(ValueError, "signed artifact has invalid schema"):
+                    verify_signed_artifact(document)
 
     def test_descriptor_verifier_cli_rejects_forged_signed_artifact(self):
         key, did = _signed_identity()
