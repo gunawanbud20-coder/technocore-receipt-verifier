@@ -1,0 +1,10 @@
+{
+  "run": 2,
+  "phase": "NEGATIVE",
+  "command": "git checkout -- tcr1_interop.py && python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_rejects_signed_artifact_with_false_claim_scope test_tcr1_interop.TCR1InteropTests.test_signed_artifact_requires_canonical_schema",
+  "exit_code": 1,
+  "stdout_stderr_tail": "Baseline production code: false-claim-scope CLI regression failed with AssertionError: 0 == 0; canonical-schema test failed 9 subtests; Ran 2 tests; FAILED (failures=10)",
+  "eval_pass": true,
+  "reason": "Removing only the production fix made the new regressions fail, proving they detect the hardening.",
+  "artifact_paths": ["/tmp/signed-schema-negative.log", "/tmp/signed-schema-production.patch"]
+}

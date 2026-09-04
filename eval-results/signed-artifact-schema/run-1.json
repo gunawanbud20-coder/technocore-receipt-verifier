@@ -1,0 +1,11 @@
+{
+  "run": 1,
+  "phase": "RED",
+  "command": "python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_rejects_signed_artifact_with_false_claim_scope",
+  "exit_code": 1,
+  "elapsed_seconds": 3,
+  "stdout_stderr_tail": "AssertionError: 0 == 0; Ran 1 test; FAILED (failures=1)",
+  "eval_pass": false,
+  "reason": "Baseline accepted a digest-consistent, signature-valid artifact that falsely changed claim_scope to authorship.",
+  "artifact_paths": ["/tmp/signed-schema-red.log", "test_tcr1_interop.py"]
+}

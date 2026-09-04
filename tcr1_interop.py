@@ -8,7 +8,7 @@ from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from receipt_verifier import find_receipt, reject_duplicate_keys
+from receipt_verifier import find_receipt, reject_duplicate_keys, sweep
 
 
 CLAIM_SCOPE = "transport-presence-only"
@@ -32,23 +32,50 @@ def _did_public_key(did):
 
 def verify_signed_artifact(document):
     """Verify the signed tuple embedded in a signed room-receipt artifact."""
+    if (
+        not isinstance(document, dict)
+        or set(document) != {"claim_scope", "receipt", "signed_transport", "type", "version"}
+        or document["claim_scope"] != "cryptographically-verified-signed-transport"
+        or document["type"] != "technocore-signed-room-receipt"
+        or type(document["version"]) is not int
+        or document["version"] != 1
+        or not isinstance(document["receipt"], dict)
+        or not isinstance(document["signed_transport"], dict)
+    ):
+        raise ValueError("signed artifact has invalid schema")
+    receipt = document["receipt"]
+    transport = document["signed_transport"]
+    nonce = receipt.get("nonce")
+    text = receipt.get("text")
+    signature = transport.get("signature")
+    snapshot_sha256 = transport.get("snapshot_sha256")
+    if (
+        set(receipt) != {"did", "nonce", "sequence", "text"}
+        or set(transport) != {"did", "nonce", "room", "signature", "snapshot_sha256"}
+        or not isinstance(receipt["did"], str)
+        or not isinstance(nonce, str)
+        or not nonce.isascii()
+        or not nonce.isdigit()
+        or not 1 <= len(nonce) <= 19
+        or type(receipt["sequence"]) is not int
+        or receipt["sequence"] <= 0
+        or not isinstance(text, str)
+        or sweep(text) != text
+        or transport["did"] != receipt["did"]
+        or transport["nonce"] != nonce
+        or not isinstance(transport["room"], str)
+        or not transport["room"]
+        or not isinstance(signature, str)
+        or len(signature) != 86
+        or any(character not in BASE64URL_ALPHABET for character in signature)
+        or not isinstance(snapshot_sha256, str)
+        or len(snapshot_sha256) != 64
+        or any(character not in "0123456789abcdef" for character in snapshot_sha256)
+    ):
+        raise ValueError("signed artifact has invalid schema")
     try:
-        transport = document["signed_transport"]
-        receipt = document["receipt"]
         did = transport["did"]
-        nonce = transport["nonce"]
         room = transport["room"]
-        signature = transport["signature"]
-        if receipt["did"] != did or receipt["nonce"] != nonce:
-            raise ValueError("signed tuple does not match receipt")
-        if (
-            not isinstance(room, str)
-            or not room
-            or not isinstance(signature, str)
-            or len(signature) != 86
-            or any(character not in BASE64URL_ALPHABET for character in signature)
-        ):
-            raise ValueError("invalid signed tuple")
         raw_signature = base64.b64decode(signature + "==", altchars=b"-_", validate=True)
         Ed25519PublicKey.from_public_bytes(_did_public_key(did)).verify(
             raw_signature, f"{room}|{nonce}|{receipt['text']}".encode("utf-8")

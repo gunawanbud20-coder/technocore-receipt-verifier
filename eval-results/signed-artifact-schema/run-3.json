@@ -1,0 +1,26 @@
+{
+  "run": 3,
+  "phase": "GREEN_RESTORED",
+  "commands": [
+    "python3 -m unittest -v",
+    "python3 -m unittest -v",
+    "python3 -m compileall -q .",
+    "git diff --check"
+  ],
+  "exit_codes": [0, 0, 0, 0],
+  "elapsed_seconds_full_suite": [7, 33],
+  "stdout_stderr_tail": "Restored focused regressions: Ran 2 tests, OK. Full suite passed twice before negative test and once after restore: Ran 33 tests, OK. compileall and git diff --check passed.",
+  "eval_pass": true,
+  "criteria": {
+    "reproducibility": "PASS: two consecutive unchanged suites each passed 33 tests",
+    "demonstrability": "PASS: real CLI rejects a digest-consistent signature-valid false claim scope and accepts a canonical generated artifact",
+    "negative_test": "PASS: production revert caused 10 expected failures; restore passed focused and full suites",
+    "regression": "PASS: all 33 signed and unsigned tests pass"
+  },
+  "artifact_paths": [
+    "/tmp/signed-schema-full-1.log",
+    "/tmp/signed-schema-full-2.log",
+    "/tmp/signed-schema-restored-focused.log",
+    "/tmp/signed-schema-restored-full.log"
+  ]
+}
