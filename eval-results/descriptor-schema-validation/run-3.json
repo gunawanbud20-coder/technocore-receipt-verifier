@@ -1,0 +1,10 @@
+{
+  "run": 3,
+  "phase": "GREEN / restored fix",
+  "command": "python3 -m unittest -v && python3 -m compileall -q . && git diff --check",
+  "exit_code": 0,
+  "elapsed_seconds": 11.80,
+  "eval_pass": true,
+  "stdout_stderr_tail": "Ran 34 tests in 11.279s; OK; TEST_EXIT=0 COMPILE_EXIT=0 DIFF_CHECK_EXIT=0. Focused regression also passed twice with identical semantic output after timing normalization.",
+  "artifacts": ["tcr1_verify.py", "test_tcr1_interop.py", "README.md"]
+}
