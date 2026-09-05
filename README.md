@@ -45,11 +45,13 @@ python3 tcr1_interop.py room.json \
 python3 tcr1_verify.py room-receipt.descriptor.json room-receipt.json
 ```
 
-The verifier exits nonzero if either JSON document has duplicate keys, if a
-field has an invalid type, if an unsigned receipt is not the canonical
-four-field envelope and four-field receipt produced above, or if any binding
-differs. A successful run emits a single deterministic JSON result with
-`verified: true` and the recomputed SHA-256 and size.
+The verifier exits nonzero unless the descriptor is the exact four-field TCR-1
+shape (`type`, `uri`, lowercase `sha256`, and `size`) for one of the two
+supported receipt artifact types. It also rejects either JSON document if it
+has duplicate keys, if a field has an invalid type, if an unsigned receipt is
+not the canonical four-field envelope and four-field receipt produced above,
+or if any binding differs. A successful run emits a single deterministic JSON
+result with `verified: true` and the recomputed SHA-256 and size.
 
 The exported document deliberately carries
 `claim_scope: transport-presence-only`. It proves only that the exact

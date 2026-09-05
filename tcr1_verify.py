@@ -8,6 +8,27 @@ from receipt_verifier import reject_duplicate_keys, sweep
 from tcr1_interop import verify_signed_artifact
 
 
+DESCRIPTOR_TYPES = {
+    "technocore-room-receipt",
+    "technocore-signed-room-receipt",
+}
+
+
+def validate_descriptor_schema(descriptor):
+    if (
+        not isinstance(descriptor, dict)
+        or set(descriptor) != {"sha256", "size", "type", "uri"}
+        or not isinstance(descriptor["type"], str)
+        or descriptor["type"] not in DESCRIPTOR_TYPES
+        or not isinstance(descriptor["uri"], str)
+        or not descriptor["uri"]
+        or not isinstance(descriptor["sha256"], str)
+        or len(descriptor["sha256"]) != 64
+        or any(character not in "0123456789abcdef" for character in descriptor["sha256"])
+    ):
+        raise ValueError("descriptor has invalid schema")
+
+
 def verify_unsigned_artifact(document):
     if (
         set(document) != {"claim_scope", "receipt", "type", "version"}
@@ -47,6 +68,10 @@ def main():
     descriptor = json.loads(
         Path(args.descriptor_json).read_bytes(), object_pairs_hook=reject_duplicate_keys
     )
+    try:
+        validate_descriptor_schema(descriptor)
+    except (TypeError, ValueError) as error:
+        parser.error(str(error))
     artifact_path = Path(args.artifact)
     artifact = artifact_path.read_bytes()
     if type(descriptor.get("size")) is not int or descriptor["size"] < 0:

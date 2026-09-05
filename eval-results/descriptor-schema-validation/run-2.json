@@ -1,0 +1,10 @@
+{
+  "run": 2,
+  "phase": "negative test / production fix reverted",
+  "command": "git checkout origin/main -- tcr1_verify.py && python3 -m unittest -v test_tcr1_interop.TCR1InteropTests.test_descriptor_verifier_cli_rejects_noncanonical_descriptor_schema; git checkout HEAD -- tcr1_verify.py",
+  "exit_code": 1,
+  "elapsed_seconds": 4.50,
+  "eval_pass": true,
+  "stdout_stderr_tail": "FAILED (failures=11); without the production fix the regression accepted an extra descriptor field and failed all remaining schema-error assertions.",
+  "artifacts": ["tcr1_verify.py", "test_tcr1_interop.py"]
+}

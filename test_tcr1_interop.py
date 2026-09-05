@@ -668,6 +668,39 @@ class TCR1InteropTests(unittest.TestCase):
             self.assertIn("descriptor has invalid size", run.stderr)
             self.assertEqual(run.stdout, "")
 
+    def test_descriptor_verifier_cli_rejects_noncanonical_descriptor_schema(self):
+        with tempfile.TemporaryDirectory() as temp:
+            artifact = Path(temp) / "receipt.json"
+            descriptor_path = Path(temp) / "descriptor.json"
+            descriptor = write_transport_artifact(
+                artifact, self.room, "did:key:zA", "7", "shipped verifier"
+            )
+            invalid_descriptors = {
+                "extra field": {**descriptor, "verified": True},
+                "missing field": {key: value for key, value in descriptor.items() if key != "uri"},
+                "boolean type": {**descriptor, "type": True},
+                "array type": {**descriptor, "type": []},
+                "empty type": {**descriptor, "type": ""},
+                "unsupported type": {**descriptor, "type": "unverified-artifact"},
+                "boolean URI": {**descriptor, "uri": True},
+                "empty URI": {**descriptor, "uri": ""},
+                "boolean digest": {**descriptor, "sha256": True},
+                "uppercase digest": {**descriptor, "sha256": descriptor["sha256"].upper()},
+                "short digest": {**descriptor, "sha256": "0" * 63},
+            }
+
+            for name, invalid_descriptor in invalid_descriptors.items():
+                with self.subTest(name=name):
+                    descriptor_path.write_text(json.dumps(invalid_descriptor))
+                    run = subprocess.run(
+                        [sys.executable, "tcr1_verify.py", str(descriptor_path), str(artifact)],
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertNotEqual(run.returncode, 0)
+                    self.assertIn("descriptor has invalid schema", run.stderr)
+                    self.assertEqual(run.stdout, "")
+
     def test_descriptor_verifier_cli_rejects_duplicate_artifact_keys(self):
         with tempfile.TemporaryDirectory() as temp:
             artifact = Path(temp) / "receipt.json"
